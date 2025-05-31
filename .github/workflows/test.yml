@@ -1,0 +1,20 @@
+name: my first workflow | shelll script 
+
+on: push
+
+jops:
+  first_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        users: actions/checkout@v4
+
+      - name: list files
+        run: ls -ltra
+
+      - name: run shell script
+        run: 
+          |
+          chmod +x script.sh
+          ./script.sh 
+
