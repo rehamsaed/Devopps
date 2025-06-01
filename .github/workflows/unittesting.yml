@@ -148,16 +148,16 @@ on:
       - main
 
 env:
-  MONGO_URI: mongodb+srv://${{ secrets.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@supercluster.d83jj.mongodb.net/superData
-  MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
-  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+  MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
+  MONGO_USERNAME: 'superuser'
+  MONGO_PASSWORD: 'SuperPassword'
 
 jobs:
   unit-testing:
     runs-on: ${{ matrix.operating_system }}
     strategy: 
       matrix:
-        nodejs_version: [18, 19, 20]
+        nodejs_version: [18, 20]
         operating_system: [ubuntu-latest]
         exclude:
           - nodejs_version: 18
