@@ -1,34 +1,46 @@
-name: 'Unit Testing'
-on:
-  push:
-    branches:
-      - 'main/*'
+name: unit testing
 
+on: 
+    push:
+      branches:
+         - main
 env:
-  MONGO_URL: ${{ secrets.MONGO_URL }}
-  MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
-  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+    MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
+    MONGO_USERNAME: ${{ vars.Mongo_username }}
+    MONGO_PASSWORD: ${{ secrets.Mongo_password }}
+
 
 jobs:
-  unit-testing:
-    name: Unit testing
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [16, 18, 20]
-        exclude:
-            node-version: 16
-    steps:
-      - name: Unit testing
-        id: nodejs-unit-testing-steps
-        run: npm test
+    unit-testing:
+        runs-on: ${{ matrix.operating_system }}
+        strategy: 
+            matrix:
+                nodejs_version: [18, 19, 20]
+                operating_system: [ubuntu-latest]
 
-      - name: Archive test result
-        if: steps.nodejs-unit-testing-step.outcome=='failure' || steps.nodejs-unit-testing-step.outcome=='success'
-        uses: actions/upload-artifact@v3
-        with:
-         name: Mocha-Test-Results
-         path: test-results.xml   
+                exclude:
+                    - nodejs_version: 18
+                      operating_system: ubuntu-latest
+                        
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
 
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: ${{ matrix.nodejs_version }}
+                
+            - name: Install Dependencies
+              run: npm install
 
+            - name: Unit Testing
+              id: nodejs-condition
+              run: npm test
+
+            - name: Archive test result
+              if: steps.nodejs-condition == 'failure' || steps.nodejs-condition == 'success'
+              uses: actions/upload-artifact@v4
+              with:
+                name: Mocha-Test-Result
+                path: test-results.xml
