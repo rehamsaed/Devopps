@@ -1,147 +1,5 @@
 name: unit testing
 
-# on: 
-#     push:
-#       branches:
-#          - main
-# env:
-#     MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
-#     MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
-#     MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-
-# jobs:
-#     unit-testing:
-#         runs-on: ${{ matrix.operating_system }}
-#         strategy: 
-#             matrix:
-#                 nodejs_version: [18, 19, 20]
-#                 operating_system: [ubuntu-latest]
-
-#                 exclude:
-#                     - nodejs_version: 18
-#                       operating_system: ubuntu-latest
-                        
-#         steps:
-#             - name: Checkout code
-#               uses: actions/checkout@v3
-
-#             - name: Set up Node.js
-#               uses: actions/setup-node@v4
-#               with:
-#                 node-version: ${{ matrix.nodejs_version }}
-                
-#             - name: Install Dependencies
-#               run: npm install
-
-#             - name: Unit Testing
-#               id: nodejs-condition
-#               run: npm test
-
-#             - name: Archive test result
-#               if: steps.nodejs-condition == 'failure' || steps.nodejs-condition == 'success'
-#               uses: actions/upload-artifact@v4
-#               with:
-#                 name: Mocha-Test-Result
-#                 path: test-results.xml
-#     code-coverage:
-#         name: code coverage
-#         runs-on: ubuntu-latest
-                        
-#         steps:
-#             - name: Checkout code
-#               uses: actions/checkout@v3
-
-#             - name: Set up Node.js
-#               uses: actions/setup-node@v4
-#               with:
-#                 node-version: 18
-                
-#             - name: Install Dependencies
-#               run: npm install
-
-#             - name: check code coverage
-#               continue-on-error: true
-#               run: npm run coverage
-
-#             - name: Archive test result
-#               uses: actions/upload-artifact@v4
-#               with:
-#                 name: code-coverage-Result
-#                 path: coverage
-                
-
-                
-
-# on:
-#   push:
-#     branches:
-#       - main
-
-# env:
-#   MONGO_URI: mongodb+srv://${{ secrets.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@supercluster.d83jj.mongodb.net/superData
-#   MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
-#   MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-
-# jobs:
-#   unit-testing:
-#     runs-on: ${{ matrix.operating_system }}
-#     strategy: 
-#       matrix:
-#         nodejs_version: [18, 19, 20]
-#         operating_system: [ubuntu-latest]
-#         exclude:
-#           - nodejs_version: 18
-#             operating_system: ubuntu-latest
-
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
-
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: ${{ matrix.nodejs_version }}
-
-#       - name: Install Dependencies
-#         run: npm install
-
-#       - name: Unit Testing
-#         id: nodejs-condition
-#         run: npm test
-
-#       - name: Archive test result
-#         if: always()
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: Mocha-Test-Result
-#           path: test-results.xml
-
-#   code-coverage:
-#     name: code coverage
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
-
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: 18
-
-#       - name: Install Dependencies
-#         run: npm install
-
-#       - name: check code coverage
-#         continue-on-error: true
-#         run: npm run coverage
-
-#       - name: Archive test result
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: code-coverage-Result
-#           path: coverage
-
 on:
   push:
     branches:
@@ -189,6 +47,7 @@ jobs:
   code-coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
+    needs: [unit-testing]
 
     steps:
       - name: Checkout code
@@ -212,33 +71,33 @@ jobs:
           name: code-coverage-Result-${{ github.run_id }}
           path: coverage
 
-docker:
-  name: containerization
-  needs: [code-coverage]
-  permissions:
-    packages: write
-  runs-on: ubuntu-latest 
-  steps: 
-    - name: Checkout code
-      uses: actions/checkout@v3
+  docker:
+    name: containerization
+    needs: [code-coverage]
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3.4.0
-      with:
-        username: ${{ vars.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3.4.0
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: DOCKER Image Test
-      run: |
-        docker images
-        docker run --name solar-system-app -d \
-          -p 3000:3000 \
-          -e MONGO_URI=${{ secrets.MONGO_URI }} \
-          -e MONGO_USERNAME=${{ secrets.MONGO_USERNAME }} \
-          -e MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
-          ghcr.io/${{ github.repository_owner }}/my-app:latest
-        sleep 10
-        docker logs solar-system-app
-        echo "Container started successfully"
-        docker stop solar-system-app
-        docker rm solar-system-app
+      - name: DOCKER Image Test
+        run: |
+          docker images
+          docker run --name solar-system-app -d \
+            -p 3000:3000 \
+            -e MONGO_URI=${{ secrets.MONGO_URI }} \
+            -e MONGO_USERNAME=${{ secrets.MONGO_USERNAME }} \
+            -e MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
+            ghcr.io/${{ github.repository_owner }}/my-app:latest
+          sleep 10
+          docker logs solar-system-app
+          echo "Container started successfully"
+          docker stop solar-system-app
+          docker rm solar-system-app
