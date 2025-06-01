@@ -1,43 +1,47 @@
-on:
-  push:
-    branches:
-      - main
+name: unit testing
 
+on: 
+    push:
+      branches:
+         - main
 env:
-  MONGO_URL: ${{ secrets.MONGO_URL }}
-  MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
-  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+    MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
+    MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
+    MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
 jobs:
-  unit-testing:
-    runs-on: ${{ matrix.operating_system }}
-    strategy:
-      matrix:
-        nodejs_version: [18, 19, 20]
-        operating_system: [ubuntu-latest]
-        exclude:
-          - nodejs_version: 18
-            operating_system: ubuntu-latest
+    unit-testing:
+        runs-on: ${{ matrix.operating_system }}
+        strategy: 
+            matrix:
+                nodejs_version: [18, 19, 20]
+                operating_system: [ubuntu-latest]
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+                exclude:
+                    - nodejs_version: 18
+                      operating_system: ubuntu-latest
+                        
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.nodejs_version }}
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: ${{ matrix.nodejs_version }}
+                
+            - name: Install Dependencies
+              run: npm install
 
-      - name: Install Dependencies
-        run: npm install
+            - name: Unit Testing
+              id: nodejs-condition
+              run: npm test
 
-      - name: Unit Testing
-        id: nodejs-condition
-        run: npm test
+            - name: Archive test result
+              if: steps.nodejs-condition == 'failure' || steps.nodejs-condition == 'success'
+              uses: actions/upload-artifact@v4
+              with:
+                name: Mocha-Test-Result
+                path: test-results.xml
 
-      - name: Archive test result
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Mocha-Test-Result
-          path: test-results.xml
+                
