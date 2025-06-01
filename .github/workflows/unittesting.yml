@@ -2,7 +2,7 @@ name: 'Unit Testing'
 on:
   push:
     branches:
-      - 'feature/*'
+      - 'main/*'
 
 env:
   MONGO_URL: ${{ secrets.MONGO_URL }}
