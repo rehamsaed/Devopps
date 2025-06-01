@@ -5,10 +5,9 @@ on:
       branches:
          - main
 env:
-    MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
-    MONGO_USERNAME: ${{ vars.Mongo_username }}
-    MONGO_PASSWORD: ${{ secrets.Mongo_password }}
-
+    MONGO_URL: ${{ secrets.MONGO_URL }}
+    MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
+    MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
 jobs:
     unit-testing:
