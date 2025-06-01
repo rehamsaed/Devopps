@@ -211,3 +211,34 @@ jobs:
         with:
           name: code-coverage-Result-${{ github.run_id }}
           path: coverage
+
+docker:
+  name: containerization
+  needs: [code-coverage]
+  permissions:
+    packages: write
+  runs-on: ubuntu-latest 
+  steps: 
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3.4.0
+      with:
+        username: ${{ vars.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: DOCKER Image Test
+      run: |
+        docker images
+        docker run --name solar-system-app -d \
+          -p 3000:3000 \
+          -e MONGO_URI=${{ secrets.MONGO_URI }} \
+          -e MONGO_USERNAME=${{ secrets.MONGO_USERNAME }} \
+          -e MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
+          ghcr.io/${{ github.repository_owner }}/my-app:latest
+        sleep 10
+        docker logs solar-system-app
+        echo "Container started successfully"
+        docker stop solar-system-app
+        docker rm solar-system-app
